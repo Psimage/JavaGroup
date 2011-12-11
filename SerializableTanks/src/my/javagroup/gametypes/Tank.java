@@ -23,7 +23,8 @@ public class Tank extends DynamicObject implements Serializable {
     //and loading it from his ResourceManager
     private String imgName = "default";
     //ResourceManager is singleton!
-    private transient ResourceManager rm = ResourceManager.getInstance();
+    //static == transient?
+    private static ResourceManager rm = ResourceManager.getInstance();
 
     public Tank() {
         // -2 because of default and map resources
@@ -41,7 +42,8 @@ public class Tank extends DynamicObject implements Serializable {
 
     //Serialization
     private Object readResolve() {
-        rm = ResourceManager.getInstance();
+        //if static field is not serialized, there is no reason to do this
+        //rm = ResourceManager.getInstance();
         img = rm.getImage(imgName);
         return this;
     }
