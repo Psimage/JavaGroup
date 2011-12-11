@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_serializabletanks" default="compile.module.serializabletanks">
+  <dirname property="module.serializabletanks.basedir" file="${ant.file.module_serializabletanks}"/>
+  
+  <property name="module.jdk.home.serializabletanks" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.serializabletanks" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.serializabletanks" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.serializabletanks" value="${compiler.args}"/>
+  
+  <property name="serializabletanks.output.dir" value="${module.serializabletanks.basedir}/../out/production/SerializableTanks"/>
+  <property name="serializabletanks.testoutput.dir" value="${module.serializabletanks.basedir}/../out/test/SerializableTanks"/>
+  
+  <path id="serializabletanks.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="serializabletanks.module.production.classpath">
+    <path refid="${module.jdk.classpath.serializabletanks}"/>
+  </path>
+  
+  <path id="serializabletanks.runtime.production.module.classpath">
+    <pathelement location="${serializabletanks.output.dir}"/>
+  </path>
+  
+  <path id="serializabletanks.module.classpath">
+    <path refid="${module.jdk.classpath.serializabletanks}"/>
+    <pathelement location="${serializabletanks.output.dir}"/>
+  </path>
+  
+  <path id="serializabletanks.runtime.module.classpath">
+    <pathelement location="${serializabletanks.testoutput.dir}"/>
+    <pathelement location="${serializabletanks.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.serializabletanks">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.serializabletanks">
+    <patternset refid="excluded.from.module.serializabletanks"/>
+  </patternset>
+  
+  <path id="serializabletanks.module.sourcepath">
+    <dirset dir="${module.serializabletanks.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.serializabletanks" depends="compile.module.serializabletanks.production,compile.module.serializabletanks.tests" description="Compile module SerializableTanks"/>
+  
+  <target name="compile.module.serializabletanks.production" depends="register.custom.compilers" description="Compile module SerializableTanks; production classes">
+    <mkdir dir="${serializabletanks.output.dir}"/>
+    <javac2 destdir="${serializabletanks.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.serializabletanks}/javac">
+      <compilerarg line="${compiler.args.serializabletanks}"/>
+      <bootclasspath refid="serializabletanks.module.bootclasspath"/>
+      <classpath refid="serializabletanks.module.production.classpath"/>
+      <src refid="serializabletanks.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.serializabletanks"/>
+    </javac2>
+    
+    <copy todir="${serializabletanks.output.dir}">
+      <fileset dir="${module.serializabletanks.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.serializabletanks.tests" depends="register.custom.compilers,compile.module.serializabletanks.production" description="compile module SerializableTanks; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.serializabletanks" description="cleanup module">
+    <delete dir="${serializabletanks.output.dir}"/>
+    <delete dir="${serializabletanks.testoutput.dir}"/>
+  </target>
+</project>
