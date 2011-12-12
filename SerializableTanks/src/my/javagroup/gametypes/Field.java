@@ -1,13 +1,18 @@
 package my.javagroup.gametypes;
 
+import com.sun.org.apache.bcel.internal.generic.IFEQ;
 import my.javagroup.ResourceManager;
 import my.javagroup.TanksApplication;
 import my.javagroup.core.DynamicObject;
 import my.javagroup.util.Serialization;
+import sun.font.TrueTypeFont;
+import sun.org.mozilla.javascript.internal.ast.NewExpression;
+import sun.org.mozilla.javascript.internal.ast.Yield;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 
@@ -102,7 +107,8 @@ public class Field extends Container {
     }
 
     public void addComponentFromFile(String path) {
-        DynamicObject obj = Serialization.deserializeObjectFromFile(path);
+        DynamicObject obj = null;
+        obj = Serialization.deserializeObjectFromFile(path);
         add(obj);
         repaint();
     }
@@ -111,7 +117,7 @@ public class Field extends Container {
     public Component add(Component comp) {
         if(DynamicObject.class.isInstance(comp)) {
             DynamicObject[] array = getComponentsAt(comp.getBounds());
-            if(array.length > 0) {
+            if(array != null) {
                 //Destroy all objects!
                 for(DynamicObject obj : array) {
                     destroyDynamicObject(obj);
@@ -177,7 +183,7 @@ public class Field extends Container {
             }
         }
 
-        return list.toArray(array);
+        return list.isEmpty() ? null : list.toArray(array);
     }
 
     public DynamicObject getSelectedComponent() {
