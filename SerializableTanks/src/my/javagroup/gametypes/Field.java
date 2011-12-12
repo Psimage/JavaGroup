@@ -3,8 +3,8 @@ package my.javagroup.gametypes;
 import com.sun.org.apache.bcel.internal.generic.IFEQ;
 import my.javagroup.ResourceManager;
 import my.javagroup.TanksApplication;
-import my.javagroup.core.DynamicObject;
 import my.javagroup.util.Serialization;
+import sun.awt.windows.ThemeReader;
 import sun.font.TrueTypeFont;
 import sun.org.mozilla.javascript.internal.ast.NewExpression;
 import sun.org.mozilla.javascript.internal.ast.Yield;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
  * Time: 3:11
  */
 public class Field extends Container {
-    private Component selected = null;
+    private Tank selected = null;
     private Image backgroundImg = null;
 
     public Field() {
@@ -34,23 +34,7 @@ public class Field extends Container {
             @Override
             public void mousePressed(MouseEvent e) {
                 if(e.getButton() == MouseEvent.BUTTON1) {
-                    Point mouseLoc = e.getPoint();
-                    Component c = getComponentAt(mouseLoc);
-
-                    //Don't touch swing! Only my classes
-                    if(c != Field.this && DynamicObject.class.isInstance(c)) {
-                        //can work as with DynamicObject but don't need yet
-                        selected = c;
-                        draggedFrom.setLocation(mouseLoc.x - selected.getX(), e.getPoint().y - selected.getY());
-                        //todo: It can hurt swing components.
-                        Field.this.setComponentZOrder(selected, 0);
-                    }
-                    else {
-                        selected = null;
-                    }
-
-                    //todo: optimization to repaint()
-                    repaint();
+                    mouseButton1Action(e);
 
                     //double-click
                     if(e.getClickCount() == 2 && selected != null) {
@@ -60,6 +44,30 @@ public class Field extends Container {
                 else if(e.getButton() == MouseEvent.BUTTON3 && e.getClickCount() == 2) {
                     addComponentFromFile(TanksApplication.TEMP_OBJ_FILE);
                 }
+            }
+
+            private void mouseButton1Action(MouseEvent e) {
+                Point mouseLoc = e.getPoint();
+                Component c = getComponentAt(mouseLoc);
+
+                //Don't touch swing! Only my classes
+                if(c != Field.this && Tank.class.isInstance(c)) {
+                    Tank tank = (Tank)c;
+                    if(tank.getState() == Tank.STATE_NORMAL) {
+                        selected = tank;
+                        draggedFrom.setLocation(mouseLoc.x - selected.getX(), e.getPoint().y - selected.getY());
+                        //todo: It can hurt swing components.
+                        Field.this.setComponentZOrder(selected, 0);
+                    }
+                    else {
+                        selected = null;
+                    }
+                }
+                else {
+                    selected = null;
+                }
+
+                repaint();
             }
 
             @Override
@@ -85,10 +93,10 @@ public class Field extends Container {
             public void mouseReleased(MouseEvent e) {
                 if(selected != null) {
                     //always returns selected object
-                    DynamicObject[] array = getComponentsAt(selected.getBounds());
+                    Tank[] array = getComponentsAt(selected.getBounds());
                     if(array.length > 1) {
                         //Destroy all objects!
-                        for(DynamicObject obj : array) {
+                        for(Tank obj : array) {
                             destroyDynamicObject(obj);
                         }
                         repaint();
@@ -103,40 +111,84 @@ public class Field extends Container {
 
     public void addSelectedComponentToFile(String path) {
         Serialization.serializeObjectToFile(path, selected);
-        remove(selected);
+        destroyDynamicObject(selected);
         repaint();
     }
 
     public void addComponentFromFile(String path) {
-        DynamicObject obj = null;
-        obj = Serialization.deserializeObjectFromFile(path);
+        final Tank obj = Serialization.deserializeObjectFromFile(path);
+        obj.create();
         add(obj);
-        repaint();
+
+        Thread t = new Thread()  {
+            public void run() {
+                while(!obj.isCreated()) {
+                    try {
+                        sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                Tank[] array = getComponentsAt(obj.getBounds());
+                if(array.length > 1) {
+                    //Destroy all objects!
+                    for(Tank obj1 : array) {
+                        destroyDynamicObject(obj1);
+                    }
+                }
+            }
+        };
+
+        t.start();
     }
 
     @Override
     public Component add(Component comp) {
-        if(DynamicObject.class.isInstance(comp)) {
-            DynamicObject[] array = getComponentsAt(comp.getBounds());
-            if(array != null) {
-                //Destroy all objects!
-                for(DynamicObject obj : array) {
-                    destroyDynamicObject(obj);
+        if(Tank.class.isInstance(comp)) {
+            Tank tank = (Tank)comp;
+            if(tank.getState() == Tank.STATE_NORMAL) {
+                Tank[] array = getComponentsAt(tank.getBounds());
+                if(array != null) {
+                    //Destroy all objects!
+                    for(Tank obj : array) {
+                        destroyDynamicObject(obj);
+                    }
+                    repaint();
+                    return null;
                 }
-                repaint();
-                return null;
             }
         }
 
         return super.add(comp);
     }
 
-    public void destroyDynamicObject(DynamicObject obj) {
+    public void destroyDynamicObject(final Tank obj) {
         //todo: in far future would be cool with animation
-        remove(obj);
+        obj.destroy();
+
         if(obj == selected) {
             selected = null;
+            repaint();
         }
+
+        Thread t = new Thread()  {
+            public void run() {
+                while(true) {
+                    if(obj.isDestroyed()) {
+                       remove(obj);
+                       break;
+                    }
+                    try {
+                        sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+
+        t.start();
     }
 
     @Override
@@ -172,14 +224,17 @@ public class Field extends Container {
     }
 
     //Basic collision testing (rect vs rect)
-    public DynamicObject[] getComponentsAt(Rectangle rect) {
-        ArrayList<DynamicObject> list = new ArrayList<>();
-        DynamicObject[] array = new DynamicObject[0];
+    public Tank[] getComponentsAt(Rectangle rect) {
+        ArrayList<Tank> list = new ArrayList<>();
+        Tank[] array = new Tank[0];
 
         for(Component c : getComponents()) {
-            if(DynamicObject.class.isInstance(c)) {
-                if(c.getBounds().intersects(rect)) {
-                    list.add((DynamicObject)c);
+            if(Tank.class.isInstance(c)) {
+                Tank tank = (Tank)c;
+                if(tank.getState() == Tank.STATE_NORMAL) {
+                    if(tank.getBounds().intersects(rect)) {
+                        list.add(tank);
+                    }
                 }
             }
         }
@@ -187,8 +242,8 @@ public class Field extends Container {
         return list.isEmpty() ? null : list.toArray(array);
     }
 
-    public DynamicObject getSelectedComponent() {
-        return (DynamicObject)selected;
+    public Tank getSelectedComponent() {
+        return selected;
     }
 
     @Override
