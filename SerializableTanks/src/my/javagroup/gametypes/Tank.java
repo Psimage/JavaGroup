@@ -1,15 +1,10 @@
 package my.javagroup.gametypes;
 
 import my.javagroup.Rand;
-import my.javagroup.ResourceManager;
 import my.javagroup.core.DynamicObject;
-import my.javagroup.util.ImageRender;
 
 import java.awt.*;
-import java.awt.image.*;
-import java.io.File;
 import java.io.Serializable;
-import java.security.PrivateKey;
 
 /**
  * User: Admin
@@ -22,9 +17,6 @@ public class Tank extends DynamicObject implements Serializable {
     //That's why we store only name of asosiated resource
     //and loading it from his ResourceManager
     private String imgName = "default";
-    //ResourceManager is singleton!
-    //static == transient?
-    private static ResourceManager rm = ResourceManager.getInstance();
 
     public Tank() {
         // -2 because of default and map resources

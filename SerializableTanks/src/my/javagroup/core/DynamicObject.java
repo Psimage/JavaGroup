@@ -6,8 +6,14 @@ package my.javagroup.core;
  * Time: 19:23
  */
 
+import my.javagroup.ResourceManager;
+
 import java.awt.*;
 import java.io.Serializable;
 
 //todo: Deprecated.Refactor!
-public abstract class DynamicObject extends Component implements Serializable{}
+public abstract class DynamicObject extends Component implements Serializable {
+    //ResourceManager is singleton!
+    //static == transient?
+    protected static ResourceManager rm = ResourceManager.getInstance();
+}

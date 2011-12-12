@@ -1,18 +1,13 @@
 package my.javagroup.gametypes;
 
-import com.sun.org.apache.bcel.internal.generic.IFEQ;
 import my.javagroup.ResourceManager;
 import my.javagroup.TanksApplication;
 import my.javagroup.core.DynamicObject;
 import my.javagroup.util.Serialization;
-import sun.font.TrueTypeFont;
-import sun.org.mozilla.javascript.internal.ast.NewExpression;
-import sun.org.mozilla.javascript.internal.ast.Yield;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 
@@ -22,7 +17,7 @@ import java.util.ArrayList;
  * Time: 3:11
  */
 public class Field extends Container {
-    private Component selected = null;
+    private DynamicObject selected = null;
     private Image backgroundImg = null;
 
     public Field() {
@@ -38,9 +33,8 @@ public class Field extends Container {
                     Component c = getComponentAt(mouseLoc);
 
                     //Don't touch swing! Only my classes
-                    if(c != Field.this && DynamicObject.class.isInstance(c)) {
-                        //can work as with DynamicObject but don't need yet
-                        selected = c;
+                    if(c != Field.this && c instanceof DynamicObject) {
+                        selected = (DynamicObject)c;
                         draggedFrom.setLocation(mouseLoc.x - selected.getX(), e.getPoint().y - selected.getY());
                         //todo: It can hurt swing components.
                         Field.this.setComponentZOrder(selected, 0);
@@ -108,8 +102,7 @@ public class Field extends Container {
     }
 
     public void addComponentFromFile(String path) {
-        DynamicObject obj = null;
-        obj = Serialization.deserializeObjectFromFile(path);
+        DynamicObject obj = Serialization.deserializeObjectFromFile(path);
         add(obj);
         repaint();
     }
@@ -118,7 +111,7 @@ public class Field extends Container {
     public Component add(Component comp) {
         if(DynamicObject.class.isInstance(comp)) {
             DynamicObject[] array = getComponentsAt(comp.getBounds());
-            if(array != null) {
+            if(array.length > 0) {
                 //Destroy all objects!
                 for(DynamicObject obj : array) {
                     destroyDynamicObject(obj);
@@ -184,11 +177,11 @@ public class Field extends Container {
             }
         }
 
-        return list.isEmpty() ? null : list.toArray(array);
+        return list.toArray(array);
     }
 
     public DynamicObject getSelectedComponent() {
-        return (DynamicObject)selected;
+        return selected;
     }
 
     @Override
