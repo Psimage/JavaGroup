@@ -13,7 +13,5 @@ import java.io.Serializable;
 
 //todo: Deprecated.Refactor!
 public abstract class DynamicObject extends Component implements Serializable {
-    //ResourceManager is singleton!
-    //static == transient?
     protected static ResourceManager rm = ResourceManager.getInstance();
 }

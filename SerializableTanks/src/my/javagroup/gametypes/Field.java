@@ -41,7 +41,7 @@ public class Field extends Container {
                     if(c != Field.this && c instanceof DynamicObject) {
                         selected = (DynamicObject)c;
                         draggedFrom.setLocation(mouseLoc.x - selected.getX(), e.getPoint().y - selected.getY());
-                        //todo: It can hurt swing components.
+                        //It can hurt swing components.
                         Field.this.setComponentZOrder(selected, 0);
                     }
                     else {

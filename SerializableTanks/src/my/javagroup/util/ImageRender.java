@@ -11,7 +11,9 @@ import java.awt.image.RGBImageFilter;
  * Time: 1:34
  */
 public class ImageRender {
-    //todo: has some bugs. Image sometimes has "bad" color
+    //todo: has some bugs. Image sometimes has "bad" color. Redesign with BufferedImageOp!
+    //http://docs.oracle.com/javase/tutorial/2d/images/drawimage.html
+
     //Copy-Paste from StackOverflow (thanks to Cazra and kleopatra)
     public static Image setSemiTransparency(Image srcImg, double semiTrans) // method accepts a transparent color.
     {

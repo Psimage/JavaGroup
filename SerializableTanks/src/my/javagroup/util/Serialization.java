@@ -1,5 +1,6 @@
 package my.javagroup.util;
 
+import my.javagroup.TanksApplication;
 import my.javagroup.core.DynamicObject;
 
 import java.io.*;
@@ -11,6 +12,9 @@ import java.io.*;
  */
 public class Serialization {
     public static <T> void serializeObjectToFile(String path, T obj) {
+        //It's bad... :( But good for my application :P
+        TanksApplication.changedByMe = true;
+
         try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(path))) {
             out.writeObject(obj);
         } catch (IOException e) {
